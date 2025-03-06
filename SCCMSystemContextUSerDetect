@@ -1,0 +1,24 @@
+#this might work when sccm package is run as system but regvalue is needed from user context of the current user
+
+# Get the currently logged-in user
+$LoggedOnUser = (Get-WmiObject -Class Win32_ComputerSystem).UserName
+if ($LoggedOnUser) {
+    $UserHive = "HKU:\" + ((Get-CimInstance Win32_UserProfile | Where-Object { $_.LocalPath -eq "C:\Users\$($LoggedOnUser.Split('\')[1])" }).SID)
+    
+    # Registry path and value
+    $RegPath = "$UserHive\SOFTWARE\Microsoft\OneDrive\Accounts\Business1"
+    $RegValueName = "KfmFoldersProtectedNow"
+    
+    # Check if the value exists and has the expected data
+    if (Test-Path $RegPath) {
+        $RegValue = (Get-ItemProperty -Path $RegPath -Name $RegValueName -ErrorAction SilentlyContinue).$RegValueName
+        if ($RegValue -eq 3584) {
+            Write-Output "Detection: Success"
+            exit 0
+        }
+    }
+}
+
+# If no user, registry key, or value mismatch
+Write-Output "Detection: Failed"
+exit 1
