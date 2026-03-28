@@ -1,0 +1,4 @@
+$before = Get-ChildItem "$env:USERPROFILE\Desktop\*.lnk"
+winget upgrade --all --silent --accept-package-agreements --accept-source-agreements
+$after = Get-ChildItem "$env:USERPROFILE\Desktop\*.lnk"
+$after | Where-Object { $before.FullName -notcontains $_.FullName } | Remove-Item
